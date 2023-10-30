@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<body>
+<div>
+
+    <form method="post" action="http://localhost:8080/add">
+        <input type="text" name="title" placeholder="Write question">
+        <input type="text" name="description" placeholder="Write answer">
+        <input type="text" name="tag" placeholder="Write tag">
+        <button type="submit">Submit</button>
+    </form>
+
+</div>
+
+<div>Question list</div>
+
+<form method="post" action="filter">
+    <input type="text" name="tag">
+    <button type="submit">Search</button>
+</form>
+    {{#questionDTO}}
+        <div>
+            <b>{{id}}</b>
+            <span>{{title}}</span>
+            <span>{{description}}</span>
+            <i>{{tag}}</i>
+        </div>
+    {{/questionDTO}}
+
+</body>
+</html>
