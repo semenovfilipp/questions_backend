@@ -1,6 +1,6 @@
 package com.example.sweater_app.service.impl;
 
-import com.example.sweater_app.domain.Question;
+import com.example.sweater_app.model.Question;
 import com.example.sweater_app.dto.QuestionDTO;
 import com.example.sweater_app.mapper.QuestionDtoMapper;
 import com.example.sweater_app.repository.QuestionRepository;
@@ -38,6 +38,19 @@ public class QuestionServiceImpl implements QuestionService {
         return StreamSupport.stream(questions.spliterator(), false)
                 .map(questionDtoMapper::toQuestionDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<QuestionDTO> findQuestionsByTag(String tag) {
+        if (tag!= null && !tag.isEmpty()){
+            Iterable<Question> questions = questionRepository.findQuestionByTag(tag);
+
+            return StreamSupport.stream(questions.spliterator(), false)
+                    .map(questionDtoMapper::toQuestionDto)
+                    .collect(Collectors.toList());
+        } else {
+            return getAllQuestionsDTO();
+        }
     }
 }
 

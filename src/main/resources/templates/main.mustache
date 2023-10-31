@@ -2,11 +2,20 @@
 <html lang="ru">
 <body>
 <div>
+    <form action="/logout" method="post">
+        <input type="submit" value="Log Out">
+        <input type="hidden" name="_csrf" value="{{_csrf.token}}"/>
+    </form>
 
-    <form method="post" action="http://localhost:8080/add">
+    <br>
+
+    <form method="post" action="http://localhost:8080/q/add">
         <input type="text" name="title" placeholder="Write question">
+        <input type="hidden" name="_csrf" value="{{_csrf.token}}"/>
         <input type="text" name="description" placeholder="Write answer">
+        <input type="hidden" name="_csrf" value="{{_csrf.token}}"/>
         <input type="text" name="tag" placeholder="Write tag">
+        <input type="hidden" name="_csrf" value="{{_csrf.token}}"/>
         <button type="submit">Submit</button>
     </form>
 
@@ -14,10 +23,12 @@
 
 <div>Question list</div>
 
-<form method="post" action="filter">
-    <input type="text" name="tag">
+<form method="post" action="http://localhost:8080/q/filter">
+    <input type="text" name="tag" placeholder="Write tag for search">
+    <input type="hidden" name="_csrf" value="{{_csrf.token}}"/>
     <button type="submit">Search</button>
 </form>
+
     {{#questionDTO}}
         <div>
             <b>{{id}}</b>

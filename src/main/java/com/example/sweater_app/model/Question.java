@@ -1,4 +1,4 @@
-package com.example.sweater_app.domain;
+package com.example.sweater_app.model;
 
 
 import jakarta.persistence.Entity;

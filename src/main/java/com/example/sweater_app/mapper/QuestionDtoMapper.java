@@ -1,6 +1,6 @@
 package com.example.sweater_app.mapper;
 
-import com.example.sweater_app.domain.Question;
+import com.example.sweater_app.model.Question;
 import com.example.sweater_app.dto.QuestionDTO;
 import org.springframework.stereotype.Component;
 
