@@ -1,6 +1,7 @@
 package org.semenov.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.semenov.dto.QuestionDTO;
 import org.semenov.model.Question;
 import org.semenov.model.User;
@@ -30,13 +31,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class QuestionController {
 
-    private QuestionRepository questionRepository;
-
-    private QuestionService questionService;
+    private final QuestionRepository questionRepository;
+    private final QuestionService questionService;
 
     @Value("${upload.path}")
     private String uploadPath;
@@ -53,13 +55,18 @@ public class QuestionController {
             @PageableDefault(sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal User user
     ) {
-        Page<QuestionDTO> page = questionService.questionList(pageable, filter, user);
+        try {
+            Page<QuestionDTO> page = questionService.questionList(pageable, filter, user);
 
-        model.addAttribute("page", page);
-        model.addAttribute("url", "/main");
-        model.addAttribute("filter", filter);
+            model.addAttribute("page", page);
+            model.addAttribute("url", "/main");
+            model.addAttribute("filter", filter);
 
-        return "main";
+            return "main";
+        } catch (Exception e) {
+            log.error("Error occurred while processing main page request: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @PostMapping("/main")
@@ -70,36 +77,34 @@ public class QuestionController {
             Model model,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
-        question.setAuthor(user);
+        try {
+            question.setAuthor(user);
 
-        if (bindingResult.hasErrors()) {
-            Map<String, String> errorsMap = ControllerUtil.getErrors(bindingResult);
+            if (bindingResult.hasErrors()) {
+                Map<String, String> errorsMap = ControllerUtil.getErrors(bindingResult);
+                model.mergeAttributes(errorsMap);
+                model.addAttribute("question", question);
+            } else {
+                saveFile(question, file);
+                model.addAttribute("question", null);
+                questionRepository.save(question);
+            }
 
-            model.mergeAttributes(errorsMap);
-            model.addAttribute("message", question);
-        } else {
-            saveFile(question, file);
+            Iterable<Question> questions = questionRepository.findAll();
+            model.addAttribute("questions", questions);
 
-            model.addAttribute("question", null);
-
-            questionRepository.save(question);
+            return "main";
+        } catch (Exception e) {
+            log.error("Error occurred while adding question: {}", e.getMessage());
+            throw e;
         }
-
-        Iterable<Question> messages = questionRepository.findAll();
-
-        model.addAttribute("questions", question);
-
-        return "main";
     }
 
-    private void saveFile(@Valid Question question,
-                          @RequestParam("file") MultipartFile file)
-            throws IOException {
+    private void saveFile(@Valid Question question, @RequestParam("file") MultipartFile file) throws IOException {
         if (file != null && !file.getOriginalFilename().isEmpty()) {
             File uploadDir = new File(uploadPath);
-
             if (!uploadDir.exists()) {
-                uploadDir.mkdir();
+                uploadDir.mkdirs();
             }
 
             String uuidFile = UUID.randomUUID().toString();

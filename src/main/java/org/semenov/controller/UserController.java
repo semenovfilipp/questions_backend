@@ -1,6 +1,7 @@
 package org.semenov.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.semenov.model.User;
 import org.semenov.model.enums.Role;
 import org.semenov.service.UserService;
@@ -15,24 +16,33 @@ import java.util.Map;
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
     private final UserService userService;
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public String userList(Model model) {
-        model.addAttribute("users", userService.findAll());
-
-        return "userList";
+        try {
+            model.addAttribute("users", userService.findAll());
+            return "userList";
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving user list: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("{user}")
     public String userEditForm(@PathVariable User user, Model model) {
-        model.addAttribute("user", user);
-        model.addAttribute("roles", Role.values());
-
-        return "userEdit";
+        try {
+            model.addAttribute("user", user);
+            model.addAttribute("roles", Role.values());
+            return "userEdit";
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving user edit form: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -42,17 +52,25 @@ public class UserController {
             @RequestParam Map<String, String> form,
             @RequestParam("userId") User user
     ) {
-        userService.saveUser(user, username, form);
-
-        return "redirect:/user";
+        try {
+            userService.saveUser(user, username, form);
+            return "redirect:/user";
+        } catch (Exception e) {
+            log.error("Error occurred while saving user: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @GetMapping("profile")
     public String getProfile(Model model, @AuthenticationPrincipal User user) {
-        model.addAttribute("username", user.getUsername());
-        model.addAttribute("email", user.getEmail());
-
-        return "profile";
+        try {
+            model.addAttribute("username", user.getUsername());
+            model.addAttribute("email", user.getEmail());
+            return "profile";
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving user profile: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @PostMapping("profile")
@@ -61,9 +79,13 @@ public class UserController {
             @RequestParam String password,
             @RequestParam String email
     ) {
-        userService.updateProfile(user, password, email);
-
-        return "redirect:/user/profile";
+        try {
+            userService.updateProfile(user, password, email);
+            return "redirect:/user/profile";
+        } catch (Exception e) {
+            log.error("Error occurred while updating user profile: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @GetMapping("subscribe/{user}")
@@ -71,9 +93,13 @@ public class UserController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable User user
     ) {
-        userService.subscribe(currentUser, user);
-
-        return "redirect:/user-messages/" + user.getId();
+        try {
+            userService.subscribe(currentUser, user);
+            return "redirect:/user-questions/" + user.getId();
+        } catch (Exception e) {
+            log.error("Error occurred while subscribing to user: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @GetMapping("unsubscribe/{user}")
@@ -81,9 +107,13 @@ public class UserController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable User user
     ) {
-        userService.unsubscribe(currentUser, user);
-
-        return "redirect:/user-messages/" + user.getId();
+        try {
+            userService.unsubscribe(currentUser, user);
+            return "redirect:/user-questions/" + user.getId();
+        } catch (Exception e) {
+            log.error("Error occurred while unsubscribing from user: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @GetMapping("{type}/{user}/list")
@@ -92,15 +122,20 @@ public class UserController {
             @PathVariable User user,
             @PathVariable String type
     ) {
-        model.addAttribute("userChannel", user);
-        model.addAttribute("type", type);
+        try {
+            model.addAttribute("userChannel", user);
+            model.addAttribute("type", type);
 
-        if ("subscriptions".equals(type)) {
-            model.addAttribute("users", user.getSubscribers());
-        } else {
-            model.addAttribute("users", user.getSubscribers());
+            if ("subscriptions".equals(type)) {
+                model.addAttribute("users", user.getSubscribers());
+            } else {
+                model.addAttribute("users", user.getSubscribers()); // Возможно, здесь должен быть другой тип данных
+            }
+
+            return "subscriptions";
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving user list: {}", e.getMessage());
+            throw e;
         }
-
-        return "subscriptions";
     }
 }

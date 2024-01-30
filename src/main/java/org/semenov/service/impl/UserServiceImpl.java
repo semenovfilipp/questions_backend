@@ -1,6 +1,7 @@
 package org.semenov.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.semenov.model.User;
 import org.semenov.model.enums.Role;
 import org.semenov.repository.UserRepository;
@@ -15,9 +16,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-@Service
+@Slf4j
 @RequiredArgsConstructor
+@Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
@@ -40,50 +41,65 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean addUser(User user) {
-        User userFromDb = userRepository.findByUsername(user.getUsername());
+        try {
+            User userFromDb = userRepository.findByUsername(user.getUsername());
 
-        if (userFromDb != null) {
-            return false;
+            if (userFromDb != null) {
+                return false;
+            }
+
+            user.setActive(true);
+            user.setRoles(Collections.singleton(Role.USER));
+            user.setActivationCode(UUID.randomUUID().toString());
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+            userRepository.save(user);
+
+            sendMessage(user);
+
+            return true;
+        } catch (Exception e) {
+            log.error("Error occurred while adding user: {}", e.getMessage());
+            throw e;
         }
-
-        user.setActive(true);
-        user.setRoles(Collections.singleton(Role.USER));
-        user.setActivationCode(UUID.randomUUID().toString());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        userRepository.save(user);
-
-        sendMessage(user);
-
-        return true;
     }
 
     public void sendMessage(User user) {
-        if (!StringUtils.isEmpty(user.getEmail())) {
-            String message = String.format(
-                    "Hello, %s! \n" +
-                            "Welcome to Sweater. Please, visit next link: http://%s/activate/%s",
-                    user.getUsername(),
-                    hostname,
-                    user.getActivationCode()
-            );
+        try {
+            if (!StringUtils.isEmpty(user.getEmail())) {
+                String message = String.format(
+                        "Hello, %s! \n" +
+                                "Welcome to Sweater. Please, visit next link: http://%s/activate/%s",
+                        user.getUsername(),
+                        hostname,
+                        user.getActivationCode()
+                );
 
-            mailSender.send(user.getEmail(), "Activation code", message);
+                mailSender.send(user.getEmail(), "Activation code", message);
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while sending message to user: {}", e.getMessage());
+            throw e;
         }
     }
 
     public boolean activateUser(String code) {
-        User user = userRepository.findByActivationCode(code);
+        try {
+            User user = userRepository.findByActivationCode(code);
 
-        if (user == null) {
-            return false;
+            if (user == null) {
+                return false;
+            }
+
+            user.setActivationCode(null);
+
+            userRepository.save(user);
+
+            return true;
+        } catch (Exception e) {
+            log.error("Error occurred while activating user: {}", e.getMessage());
+            throw e;
         }
-
-        user.setActivationCode(null);
-
-        userRepository.save(user);
-
-        return true;
     }
 
     public List<User> findAll() {
