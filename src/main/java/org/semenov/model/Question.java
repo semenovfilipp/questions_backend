@@ -24,17 +24,21 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "filename")
     private String fileName;
 
     @NotBlank(message = "Please fill the question")
     @Length(max = 2048, message = "Question is too long (more than 2kB)")
+    @Column(name = "text")
     private String text;
 
     @Length(max = 255, message = "Tag is too long (more than 255)")
+    @Column(name = "tag")
     private String tag;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
+    @Column(name = "author")
     private User author;
 
     @ManyToMany
