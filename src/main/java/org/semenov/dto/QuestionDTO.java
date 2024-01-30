@@ -2,10 +2,9 @@ package org.semenov.dto;
 
 import lombok.*;
 import org.semenov.model.User;
-
+@Builder
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuestionDTO {
@@ -22,4 +21,6 @@ public class QuestionDTO {
         private Long likes;
 
         private Boolean meLiked;
+
+
 }

@@ -13,33 +13,49 @@ import org.springframework.data.repository.query.Param;
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     @Query("select new org.semenov.dto.QuestionDTO(" +
-            "   m, " +
+            "   m.id, " +
+            "   m.text, " +
+            "   m.tag, " +
+            "   m.author, " +
+            "   m.fileName, " +
             "   count(ml), " +
-            "   sum(case when ml = :user then 1 else 0 end) > 0" +
+            "   case when :user member of m.likes then true else false end" +
             ") " +
-            "from Message m left join m.likes ml " +
-            "group by m")
+            "from Question m left join m.likes ml " +
+            "group by m.id, m.text, m.tag, m.author, m.fileName")
     Page<QuestionDTO> findAll(Pageable pageable, @Param("user") User user);
 
 
 
+
     @Query("select new org.semenov.dto.QuestionDTO(" +
-            "   m, " +
+            "   m.id, " +
+            "   m.text, " +
+            "   m.tag, " +
+            "   m.author, " +
+            "   m.fileName, " +
             "   count(ml), " +
-            "   sum(case when ml = :user then 1 else 0 end) > 0" +
+            "   case when :user member of m.likes then true else false end" +
             ") " +
             "from Question m left join m.likes ml " +
             "where m.tag = :tag " +
-            "group by m")
+            "group by m.id, m.text, m.tag, m.author, m.fileName")
     Page<QuestionDTO> findByTag(@Param("tag") String tag, Pageable pageable, @Param("user") User user);
 
     @Query("select new org.semenov.dto.QuestionDTO(" +
-            "   m, " +
+            "   m.id, " +
+            "   m.text, " +
+            "   m.tag, " +
+            "   m.author, " +
+            "   m.fileName, " +
             "   count(ml), " +
-            "   sum(case when ml = :user then 1 else 0 end) > 0" +
+            "   case when :user member of m.likes then true else false end" +
             ") " +
             "from Question m left join m.likes ml " +
             "where m.author = :author " +
-            "group by m")
+            "group by m.id, m.text, m.tag, m.author, m.fileName")
     Page<QuestionDTO> findByUser(Pageable pageable, @Param("author") User author, @Param("user") User user);
+
+
+
 }
